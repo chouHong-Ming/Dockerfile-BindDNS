@@ -1,0 +1,11 @@
+version: "3.7"
+services:
+  server:
+    build: ..
+    ports:
+        - "53:53"
+    # volumes:
+    #     - ./ssh_server_key:/ssh_server_key
+    #     - ./ssh_ansible_client_key:/ssh_ansible_client_key
+
+
