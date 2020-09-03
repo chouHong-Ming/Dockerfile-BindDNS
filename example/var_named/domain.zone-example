@@ -1,0 +1,29 @@
+$ORIGIN abc.com.                ; designates the start of this zone file in the namespace
+$TTL    300                     ;default  expiration time of all resource records without  their  own TTL  value
+abc.com.          IN       SOA    ns.abc.com.       email-account.abc.com.        (
+                                                                2020022901
+                                                                1d
+                                                                2h
+                                                                4w
+                                                                1h  )
+
+abc.com.          IN      NS              ns01                    ; ns.abc.com is the nameserver for abc.com
+abc.com.          IN      NS              ns02                    ; ns.abc.com is the nameserver for abc.com
+abc.com.          IN      MX      10      ms01                    ; ms.abc.com is the mailserver for abc.com
+abc.com.          IN      MX      20      ms02                    ; ms.abc.com is the mailserver for abc.com
+
+
+ns01                    IN      A               1.1.1.1
+ns02                    IN      A               2.2.2.2
+
+ms01                    IN      A               3.3.3.3
+ms02                    IN      A               4.4.4.4
+
+abc.com.                IN      A               1.2.3.4                     ; IPv4 address for abc.com
+;www                    IN      CNAME           abc.com.
+www                     IN      A               1.2.3.4
+web                     IN      CNAME           abc.com.
+
+
+abc.com.                IN      AAAA            1111:1111:1111::1           ; IPv6 address for abc.com
+

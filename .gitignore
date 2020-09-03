@@ -1,0 +1,10 @@
+example/var_named/*.zone
+example/var_named/chroot
+example/var_named/data
+example/var_named/dynamic
+example/var_named/slaves
+example/var_named/named.*
+
+example/named.conf
+
+

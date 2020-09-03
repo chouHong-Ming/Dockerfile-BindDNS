@@ -18,7 +18,7 @@ options {
         memstatistics-file "/var/named/data/named_mem_stats.txt";
         recursing-file  "/var/named/data/named.recursing";
         secroots-file   "/var/named/data/named.secroots";
-        allow-query     { 10.0.0.0/8; };
+        allow-query     { 0.0.0.0/0; };
 
         /*
          - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
@@ -56,13 +56,17 @@ zone "." IN {
         file "named.ca";
 };
 
-zone "lchick.idv.tw" IN {
+zone "abc.com" IN {
         type master;
-        file "/var/named/lchick.idv.tw.zone";
-        allow-query     { 0.0.0.0/0; };
+        // Setting for the secondary DNS server if you have
         notify yes;
-        also-notify { 10.0.10.7; };
+        also-notify { 2.2.2.2; };
+
+        file "/var/named/abc.com.zone";
+        allow-query     { 0.0.0.0/0; };
 };
 
 include "/etc/named.rfc1912.zones";
 include "/etc/named.root.key";
+
+

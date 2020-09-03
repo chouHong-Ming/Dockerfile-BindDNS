@@ -3,9 +3,12 @@ services:
   server:
     build: ..
     ports:
-        - "53:53"
-    # volumes:
-    #     - ./ssh_server_key:/ssh_server_key
-    #     - ./ssh_ansible_client_key:/ssh_ansible_client_key
+      - "53:53/udp"
+    volumes:
+      - ./var_named:/var/named
+      - ./named.conf:/etc/named.conf
+    environment:
+      - NAMEDCONF=/etc/named.conf
+      - LOG_LEVEL=5
 
 
