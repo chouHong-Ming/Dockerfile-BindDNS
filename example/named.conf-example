@@ -9,6 +9,8 @@
 // See the BIND Administrator's Reference Manual (ARM) for details about the
 // configuration located in /usr/share/doc/bind-{version}/Bv9ARM.html
 
+acl internals { 192.168.0.0/24; };
+
 options {
         listen-on port 53 { 0.0.0.0/0; };
         listen-on-v6 port 53 { ::1; };
@@ -19,6 +21,7 @@ options {
         recursing-file  "/var/named/data/named.recursing";
         secroots-file   "/var/named/data/named.secroots";
         allow-query     { 0.0.0.0/0; };
+        allow-transfer  { internals; };
 
         /*
          - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
