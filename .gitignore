@@ -7,4 +7,5 @@ example/var_named/named.*
 
 example/named.conf
 
+example/k8s.yml
 

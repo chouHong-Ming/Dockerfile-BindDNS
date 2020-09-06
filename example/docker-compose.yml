@@ -5,8 +5,8 @@ services:
     ports:
       - "53:53/udp"
     volumes:
-      - ./var_named:/var/named
       - ./named.conf:/etc/named.conf
+      - ./var_named:/var/named
     environment:
       - NAMEDCONF=/etc/named.conf
       - LOG_LEVEL=5
