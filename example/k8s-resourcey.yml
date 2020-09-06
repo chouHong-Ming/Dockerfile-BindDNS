@@ -1,117 +1,114 @@
 apiVersion: v1
-kind: PersistentVolume
+data:
+  named.conf: |
+    //
+    // named.conf
+    //
+    // Provided by Red Hat bind package to configure the ISC BIND named(8) DNS
+    // server as a caching only nameserver (as a localhost DNS resolver only).
+    //
+    // See /usr/share/doc/bind*/sample/ for example named configuration files.
+    //
+    // See the BIND Administrator's Reference Manual (ARM) for details about the
+    // configuration located in /usr/share/doc/bind-{version}/Bv9ARM.html
+    
+    acl internals { 192.168.0.0/24; };
+    
+    options {
+            listen-on port 53 { 0.0.0.0/0; };
+            listen-on-v6 port 53 { ::1; };
+            directory       "/var/named";
+            dump-file       "/var/named/data/cache_dump.db";
+            statistics-file "/var/named/data/named_stats.txt";
+            memstatistics-file "/var/named/data/named_mem_stats.txt";
+            recursing-file  "/var/named/data/named.recursing";
+            secroots-file   "/var/named/data/named.secroots";
+            allow-query     { 0.0.0.0/0; };
+            allow-transfer  { internals; };
+    
+            /*
+            - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
+            - If you are building a RECURSIVE (caching) DNS server, you need to enable
+              recursion.
+            - If your recursive DNS server has a public IP address, you MUST enable access
+              control to limit queries to your legitimate users. Failing to do so will
+              cause your server to become part of large scale DNS amplification
+              attacks. Implementing BCP38 within your network would greatly
+              reduce such attack surface
+            */
+            recursion yes;
+    
+            dnssec-enable yes;
+            dnssec-validation yes;
+    
+            /* Path to ISC DLV key */
+            bindkeys-file "/etc/named.iscdlv.key";
+    
+            managed-keys-directory "/var/named/dynamic";
+    
+            pid-file "/run/named/named.pid";
+            session-keyfile "/run/named/session.key";
+    };
+    
+    logging {
+            channel default_debug {
+                    file "data/named.run";
+                    severity dynamic;
+            };
+    };
+    
+    zone "." IN {
+            type hint;
+            file "named.ca";
+    };
+    
+    zone "abc.com" IN {
+            type master;
+            // Setting for the secondary DNS server if you have
+            // notify yes;
+            // also-notify { 2.2.2.2; };
+    
+            file "/var/named/abc.com.zone";
+            allow-query     { 0.0.0.0/0; };
+    };
+    
+    include "/etc/named.rfc1912.zones";
+    include "/etc/named.root.key";
+  abc.com.zone: |
+    $ORIGIN abc.com.                ; designates the start of this zone file in the namespace
+    $TTL    300                     ;default  expiration time of all resource records without  their  own TTL  value
+    abc.com.          IN       SOA    ns.abc.com.       email-account.abc.com.        (
+                                                                    2020022901
+                                                                    1d
+                                                                    2h
+                                                                    4w
+                                                                    1h  )
+    
+    abc.com.          IN      NS              ns01                    ; ns.abc.com is the nameserver for abc.com
+    abc.com.          IN      NS              ns02                    ; ns.abc.com is the nameserver for abc.com
+    abc.com.          IN      MX      10      ms01                    ; ms.abc.com is the mailserver for abc.com
+    abc.com.          IN      MX      20      ms02                    ; ms.abc.com is the mailserver for abc.com
+    
+    
+    ns01                    IN      A               1.1.1.1
+    ns02                    IN      A               2.2.2.2
+    
+    ms01                    IN      A               3.3.3.3
+    ms02                    IN      A               4.4.4.4
+    
+    abc.com.                IN      A               1.2.3.4                     ; IPv4 address for abc.com
+    ;www                    IN      CNAME           abc.com.
+    www                     IN      A               1.2.3.4
+    web                     IN      CNAME           abc.com.
+    
+    
+    abc.com.                IN      AAAA            1111:1111:1111::1           ; IPv6 address for abc.com
+kind: ConfigMap
 metadata:
-  name: dns
-spec:
-  accessModes:
-  - ReadWriteMany
-  capacity:
-    storage: 100Gi
-  nfs:
-    path: [YOUR_NFS_PATH]
-    server: [YOUR_NFS_IP]
-  persistentVolumeReclaimPolicy: Retain
-  volumeMode: Filesystem
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
+  labels:
+    app: dns
   name: dns
   namespace: [YOUR_K8S_NAMESPACE]
-spec:
-  accessModes:
-  - ReadWriteMany
-  resources:
-    requests:
-      storage: 100Gi
-  storageClassName: ""
-  volumeMode: Filesystem
-  volumeName: dns
-
----
-  apiVersion: v1
-  data:
-    named.conf: |
-      //
-      // named.conf
-      //
-      // Provided by Red Hat bind package to configure the ISC BIND named(8) DNS
-      // server as a caching only nameserver (as a localhost DNS resolver only).
-      //
-      // See /usr/share/doc/bind*/sample/ for example named configuration files.
-      //
-      // See the BIND Administrator's Reference Manual (ARM) for details about the
-      // configuration located in /usr/share/doc/bind-{version}/Bv9ARM.html
-      
-      acl internals { 192.168.0.0/24; };
-      
-      options {
-              listen-on port 53 { 0.0.0.0/0; };
-              listen-on-v6 port 53 { ::1; };
-              directory       "/var/named";
-              dump-file       "/var/named/data/cache_dump.db";
-              statistics-file "/var/named/data/named_stats.txt";
-              memstatistics-file "/var/named/data/named_mem_stats.txt";
-              recursing-file  "/var/named/data/named.recursing";
-              secroots-file   "/var/named/data/named.secroots";
-              allow-query     { 0.0.0.0/0; };
-              allow-transfer  { internals; };
-      
-              /*
-              - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
-              - If you are building a RECURSIVE (caching) DNS server, you need to enable
-                recursion.
-              - If your recursive DNS server has a public IP address, you MUST enable access
-                control to limit queries to your legitimate users. Failing to do so will
-                cause your server to become part of large scale DNS amplification
-                attacks. Implementing BCP38 within your network would greatly
-                reduce such attack surface
-              */
-              recursion yes;
-      
-              dnssec-enable yes;
-              dnssec-validation yes;
-      
-              /* Path to ISC DLV key */
-              bindkeys-file "/etc/named.iscdlv.key";
-      
-              managed-keys-directory "/var/named/dynamic";
-      
-              pid-file "/run/named/named.pid";
-              session-keyfile "/run/named/session.key";
-      };
-      
-      logging {
-              channel default_debug {
-                      file "data/named.run";
-                      severity dynamic;
-              };
-      };
-      
-      zone "." IN {
-              type hint;
-              file "named.ca";
-      };
-      
-      zone "abc.com" IN {
-              type master;
-              // Setting for the secondary DNS server if you have
-              // notify yes;
-              // also-notify { 2.2.2.2; };
-      
-              file "/var/named/abc.com.zone";
-              allow-query     { 0.0.0.0/0; };
-      };
-      
-      include "/etc/named.rfc1912.zones";
-      include "/etc/named.root.key";
-  kind: ConfigMap
-  metadata:
-    labels:
-      app: dns
-    name: dns
-    namespace: [YOUR_K8S_NAMESPACE]
   
 ---
 apiVersion: apps/v1
@@ -160,8 +157,9 @@ spec:
         - mountPath: /etc/named.conf
           name: dns-setting
           subPath: named.conf
-        - mountPath: /var/named
-          name: dns-storage
+        - mountPath: /var/named/abc.com.zone
+          name: dns-setting
+          subPath: abc.com.zone
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -172,7 +170,4 @@ spec:
         configMap:
           defaultMode: 420
           name: dns
-      - name: dns-storage
-        persistentVolumeClaim:
-          claimName: dns
 
