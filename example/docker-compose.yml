@@ -1,12 +1,12 @@
 version: "3.7"
 services:
   server:
-    build: ..
+    image: chouhongming/bind-dns
     ports:
       - "53:53/udp"
     volumes:
       - ./named.conf:/etc/named.conf
-      - ./var_named:/var/named
+      - ./var_named/domain.zone:/var/named/domain.zone
     environment:
       - NAMEDCONF=/etc/named.conf
       - LOG_LEVEL=5
